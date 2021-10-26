@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Boro Mantenimiento</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.1/font/bootstrap-icons.css">
+</head>
+<body>
+	<style>
+		tr:hover{cursor: pointer;}
+		.nada{cursor:default!important;}
+	</style>
+	<div class="container mt-4" id="app">
+		<div class="row">
+			<div class="col-3 justify-content-center">
+				<img src="logo.png" class="img-fluid">
+			</div>
+			<div class="col">
+				<h1>Sistema para Boro Mantenimiento</h1>
+				<h3>Bienvenido</h3>
+				<p>Ingrese descripción, Código SAP u Oracle para ubicar productos</p>
+				<div class="input-group mb-3">
+					<button class="btn btn-outline-warning" type="button" id="button-addon1" @click="nuevo()"><i class="bi bi-bookmark-plus"></i> Nuevo</button>
+					<input type="text" class="form-control" placeholder="A buscar" v-model="texto" aria-label="Buscar" aria-describedby="button-addon2" @keyup.enter="buscarTexto()" >
+					<button class="btn btn-outline-secondary" @click="buscarTexto()" type="button" id="button-addon2"><i class="bi bi-search"></i></button>
+				</div>
+		</div>
+		</div>
+		<div class="row">
+			<div class="col">
+				<p>Resultados: </p>
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>N°</th>
+							<th>Descripción	</th>
+							<th>Cod. SAP	</th>
+							<th>Cod. Oracle	</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(producto, index) in productos" :key="producto.cod" @click="llamarOff(producto.cod, producto.DESCRIPCION, producto.CODIGO_SAP, producto.CODIGO_ORACLE )">
+							<td>{{index+1}}</td>
+							<td class="text-capitalize">{{producto.DESCRIPCION}}</td>
+							<td>{{producto.CODIGO_SAP}}</td>
+							<td>{{producto.CODIGO_ORACLE}}</td>
+						</tr>
+						<tr class="nada" v-if="productos.length==0">
+							<td colspan="4">Sin registros, utiliza el campo de búsqueda</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<!-- Modal -->
+		<div class="modal fade" id="modalNuevo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Registrar nuevo producto</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p>Rellene los campos</p>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="floDescripcion" placeholder=" " autocomplete="off" v-model="descripcion">
+							<label for="floDescripcion">Descripción</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="floSap" placeholder=" " autocomplete="off" v-model="sap">
+							<label for="floSap">Código SAP</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="floOracle" placeholder=" " autocomplete="off" v-model="oracle">
+							<label for="floOracle">Código Oracle</label>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-outline-primary" @click.stop="guardar()"> <i class="bi bi-download"></i> Guardar producto</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="offcanvas offcanvas-end" tabindex="-1" id="offCanvasProducto" aria-labelledby="offProducto">
+			<div class="offcanvas-header">
+				<h5 class="offcanvas-title" id="offProducto">Editar el producto</h5>
+				<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+			</div>
+			<div class="offcanvas-body">
+				<div>
+					<p>Rellene los campos para editar</p>
+				</div>
+
+				<div class="form-floating mb-3">
+					<textarea class="form-control" placeholder=" " id="floDescripcion" style="height: 100px" v-model="descripcion"></textarea>
+					<label for="floDescripcion">Descripción</label>
+				</div>
+				<div class="form-floating mb-3">
+					<input type="text" class="form-control" id="floSap" placeholder=" " autocomplete="off" v-model="sap">
+					<label for="floSap">Código SAP</label>
+				</div>
+				<div class="form-floating mb-3">
+					<input type="text" class="form-control" id="floOracle" placeholder=" " autocomplete="off" v-model="oracle">
+					<label for="floOracle">Código Oracle</label>
+				</div>
+				<div class="d-grid">
+					<button type="button" class="btn btn-outline-secondary btn-lg" @click="actualizar()"><i class="bi bi-arrow-counterclockwise"></i> Actualizar</button>
+					<button type="button" class="btn btn-outline-danger btn-lg mt-2" @click="eliminar()"><i class="bi bi-file-earmark-x"></i> Eliminar</button>
+				</div>
+
+				
+			</div>
+		</div>
+
+	</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+	var modalNuevo, offCanvas;
+	var app = new Vue({
+		el: "#app",
+		data:{
+			nombreApi: "https://boros.infocatsoluciones.com/",
+			texto:'cascos 11', productos:[],
+			descripcion: '', sap:'', oracle:'', id:-1
+			
+		},
+		mounted(){
+			/* axios.post( this.nombreApi + 'prueba.php')
+			.then((response)=>{ console.log( response.data );})
+			.catch((error)=>{ console.log( error );}); */
+			modalNuevo = new bootstrap.Modal(document.getElementById('modalNuevo'));
+			offCanvas = new bootstrap.Offcanvas(document.getElementById('offCanvasProducto'))
+		},
+		methods: {
+			nuevo(){
+				modalNuevo.show();
+			},
+			buscarTexto(){
+				if( this.texto!=''){
+					axios.post( this.nombreApi + 'buscarProducto.php', {
+						texto: this.texto
+					})
+					.then((response)=>{ console.log( response.data );
+						this.productos=response.data;
+					})
+					.catch((error)=>{ console.log( error );});
+				}
+			},
+			guardar(){
+				axios.post(this.nombreApi + 'nuevoProducto.php', {
+					descripcion:this.descripcion,
+					sap:this.sap,
+					oracle:this.oracle
+				})
+				.then((response)=>{ console.log( response.data );
+					if(response.data=='bien'){
+						modalNuevo.hide();
+						this.texto = this.oracle;
+						this.buscarTexto();
+					}
+				})
+				.catch((error)=>{ console.log( error );});
+			},
+			llamarOff(id, descripcion, sap, oracle){
+				this.id=id;
+				this.descripcion = descripcion;
+				this.sap = sap;
+				this.oracle = oracle;
+				offCanvas.show();
+			},
+			actualizar(){
+				axios.post(this.nombreApi + 'actualizarProducto.php', {
+					descripcion:this.descripcion,
+					sap:this.sap,
+					oracle:this.oracle,
+					id: this.id
+				})
+				.then((response)=>{ console.log( response.data );
+					if(response.data=='bien'){
+						modalNuevo.hide();
+						this.buscarTexto();
+						this.texto = this.oracle;
+					}
+				})
+				.catch((error)=>{ console.log( error );});
+			},
+			limpiarHTML(){
+				this.productos=[];
+				this.texto='';
+				this.descripcion='';
+				this.sap='';
+				this.oracle='';
+				this.id=-1;
+			},
+			eliminar(){
+				if(confirm("¿Deseas eliminar éste producto?")){
+					axios.post(this.nombreApi + 'borrarProducto.php', {
+					id: this.id
+				})
+				.then((response)=>{ console.log( response.data );
+					offCanvas.hide()
+					this.limpiarHTML();
+				})
+				.catch((error)=>{ console.log( error );});
+				}
+			}
+		},
+	})
+</script>
+</body>
+</html>
