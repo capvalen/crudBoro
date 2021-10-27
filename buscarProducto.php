@@ -6,7 +6,7 @@ $filas = array();
 $sqlPro=$db->prepare("SELECT * FROM `productos`
 where DESCRIPCION like ?
 or CODIGO_SAP like ?
-or CODIGO_ORACLE like ?; ");
+or CODIGO_ORACLE like ? order by descripcion asc; ");
 
 $sqlPro->bindValue(1, "%{$_POST['texto']}%", PDO::PARAM_STR);
 $sqlPro->bindValue(2, "%{$_POST['texto']}%", PDO::PARAM_STR);
